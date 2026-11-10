@@ -4,6 +4,7 @@
   const textarea = document.getElementById('itemsInput');
   const startBtn = document.getElementById('startBtn');
   const copyUrlBtn = document.getElementById('copyUrlBtn');
+  const shareUrlEl = document.getElementById('shareUrl');
   const resultEl = document.getElementById('result');
 
   const CENTER = canvas.width / 2;
@@ -127,6 +128,7 @@
 
   // Keep the address bar in sync so the page can be bookmarked as-is
   function syncUrl() {
+    shareUrlEl.value = buildShareUrl();
     try {
       history.replaceState(null, '', buildShareUrl());
     } catch (e) { /* e.g. file:// restrictions */ }
@@ -212,16 +214,21 @@
     }
   });
   textarea.addEventListener('input', updateFromInput);
+  shareUrlEl.addEventListener('focus', () => shareUrlEl.select());
   copyUrlBtn.addEventListener('click', async () => {
     const url = buildShareUrl();
+    let ok = false;
     try {
       await navigator.clipboard.writeText(url);
-      copyUrlBtn.textContent = 'コピーしました！';
+      ok = true;
     } catch (e) {
-      window.prompt('URLをコピーしてください', url);
-      return;
+      // Fallback for restricted contexts (iframes, non-secure origins)
+      shareUrlEl.focus();
+      shareUrlEl.select();
+      try { ok = document.execCommand('copy'); } catch (e2) { ok = false; }
     }
-    setTimeout(() => { copyUrlBtn.textContent = 'URLをコピー'; }, 1500);
+    copyUrlBtn.textContent = ok ? 'コピーしました！' : '上のURLを選択してコピーしてください';
+    setTimeout(() => { copyUrlBtn.textContent = 'URLをコピー'; }, 2000);
   });
 
   // Initial items from the URL, e.g. ?items=A,B,C or ?item=A&item=B&item=C

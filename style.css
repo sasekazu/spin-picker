@@ -157,3 +157,12 @@ h1 {
 #copyUrlBtn:hover {
   border-color: var(--accent);
 }
+#shareUrl {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--muted);
+  background: #f9fafb;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
