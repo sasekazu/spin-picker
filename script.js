@@ -3,6 +3,7 @@
   const ctx = canvas.getContext('2d');
   const textarea = document.getElementById('itemsInput');
   const startBtn = document.getElementById('startBtn');
+  const copyUrlBtn = document.getElementById('copyUrlBtn');
   const resultEl = document.getElementById('result');
 
   const CENTER = canvas.width / 2;
@@ -105,6 +106,30 @@
     if (phase === 'idle') {
       drawWheel();
     }
+    syncUrl();
+  }
+
+  // Build a shareable URL (?items=A,B,C) from the current items.
+  // Items containing commas are not representable in comma form, so use repeated "item" params.
+  function buildShareUrl() {
+    const url = new URL(window.location.href);
+    url.search = '';
+    url.hash = '';
+    if (items.length > 0) {
+      if (items.some(i => i.includes(','))) {
+        items.forEach(i => url.searchParams.append('item', i));
+      } else {
+        url.searchParams.set('items', items.join(','));
+      }
+    }
+    return url.toString();
+  }
+
+  // Keep the address bar in sync so the page can be bookmarked as-is
+  function syncUrl() {
+    try {
+      history.replaceState(null, '', buildShareUrl());
+    } catch (e) { /* e.g. file:// restrictions */ }
   }
 
   function startSpin() {
@@ -187,6 +212,17 @@
     }
   });
   textarea.addEventListener('input', updateFromInput);
+  copyUrlBtn.addEventListener('click', async () => {
+    const url = buildShareUrl();
+    try {
+      await navigator.clipboard.writeText(url);
+      copyUrlBtn.textContent = 'コピーしました！';
+    } catch (e) {
+      window.prompt('URLをコピーしてください', url);
+      return;
+    }
+    setTimeout(() => { copyUrlBtn.textContent = 'URLをコピー'; }, 1500);
+  });
 
   // Initial items from the URL, e.g. ?items=A,B,C or ?item=A&item=B&item=C
   // (commas and newlines both separate items)
