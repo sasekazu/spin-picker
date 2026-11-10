@@ -188,5 +188,20 @@
   });
   textarea.addEventListener('input', updateFromInput);
 
+  // Initial items from the URL, e.g. ?items=A,B,C or ?item=A&item=B&item=C
+  // (commas and newlines both separate items)
+  function loadItemsFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const raw = [...params.getAll('items'), ...params.getAll('item')];
+    const list = raw
+      .flatMap(v => v.split(/,|\r\n|\r|\n/))
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
+    if (list.length > 0) {
+      textarea.value = list.join('\n');
+    }
+  }
+
+  loadItemsFromUrl();
   updateFromInput();
 })();
